@@ -11,7 +11,9 @@ const getNextStickerId = () => {
 }
 
 const addSticker = ({ laneId }) => {
-    stickers.push({ id: getNextStickerId(), text: '', laneId: laneId })
+    const stickerId = getNextStickerId()
+    console.log(`new stickerId: ${stickerId}`)
+    stickers.push({ id: stickerId, text: '', laneId: laneId })
 }
 
 const deleteSticker = (id) => {
@@ -22,17 +24,18 @@ const deleteSticker = (id) => {
     }
 }
 
-const getSticker = (id) => stickers.filter((sticker) => sticker.id === id)
+const getSticker = (id) => stickers.find((s) => s.id === id)
 
-const getStickers = (laneId) => stickers.filter((sticker) => sticker.laneId === laneId)
+const getStickers = (laneId) => stickers.find((s) => s.laneId === laneId)
 
 const getAllStickers = () => stickers
 
-const updateSticker = ({ id, text }) => {
-    const sticker = stickers.find((s) => s.id === id)
+const updateSticker = (stickerToUpdate) => {
+    const sticker = stickers.find((s) => s.id === stickerToUpdate.id)
 
     if (sticker) {
-        sticker.text = text
+        sticker.text = stickerToUpdate.text
+        sticker.laneId = stickerToUpdate.laneId
     }
 }
 

@@ -4,7 +4,7 @@ const http = require('http')
 const cors = require('cors')
 const router = require('./router')
 
-const { addSticker , deleteSticker, getAllStickers, updateSticker } = require('./stickers')
+const { addSticker , deleteSticker, getSticker, getAllStickers, updateSticker } = require('./stickers')
 const { getAllLanes } = require('./lanes')
 
 const PORT = process.env.PORT || 5000
@@ -48,6 +48,32 @@ io.on('connection', (socket) => {
         const deletedSticker = deleteSticker(id)
 
         if (deletedSticker) {
+            socket.broadcast.emit('update-all-stickers', getAllStickers())
+            socket.emit('update-all-stickers', getAllStickers())
+        }
+    })
+
+    socket.on('move-sticker-right', (stickerToMove) => {
+        const sticker = getSticker(stickerToMove.id)
+
+        if (sticker) {
+            sticker.laneId = parseInt(stickerToMove.laneId) + 1
+
+            updateSticker(sticker)
+
+            socket.broadcast.emit('update-all-stickers', getAllStickers())
+            socket.emit('update-all-stickers', getAllStickers())
+        }
+    })
+
+    socket.on('move-sticker-left', (stickerToMove) => {
+        const sticker = getSticker(stickerToMove.id)
+
+        if (sticker) {
+            sticker.laneId = parseInt(stickerToMove.laneId) - 1
+
+            updateSticker(sticker)
+
             socket.broadcast.emit('update-all-stickers', getAllStickers())
             socket.emit('update-all-stickers', getAllStickers())
         }
