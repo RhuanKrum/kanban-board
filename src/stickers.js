@@ -1,42 +1,42 @@
-const stickers = []
+const Sticker = require('./models/Sticker')
 
-// sticker => id, text, laneId
-
-const getNextStickerId = () => {
-    if (!stickers.length) {
-        return 1
-    }
-
-    return Math.max.apply(Math, stickers.map((sticker) => sticker.id)) + 1
+const addSticker = async (laneId) => {
+    await Sticker.create({
+        text: "",
+        laneId: laneId
+    }).then(sticker => console.log(`sticker created: '${sticker.id}'`))
+    .catch(err => console.log(err))
 }
 
-const addSticker = ({ laneId }) => {
-    const stickerId = getNextStickerId()
-    console.log(`new stickerId: ${stickerId}`)
-    stickers.push({ id: stickerId, text: '', laneId: laneId })
+const deleteSticker = async (id) => {
+    await Sticker.destroy({
+        where: {
+            id: id
+        }
+    }).catch(err => console.log(err))
 }
 
-const deleteSticker = (id) => {
-    const index = stickers.findIndex((sticker) => sticker.id === id)
-
-    if (index !== -1) {
-        return stickers.splice(index, 1)[0]
+const getSticker = async (id) => await Sticker.findOne({
+    where: {
+        id: id
     }
-}
+})
 
-const getSticker = (id) => stickers.find((s) => s.id === id)
-
-const getStickers = (laneId) => stickers.find((s) => s.laneId === laneId)
-
-const getAllStickers = () => stickers
-
-const updateSticker = (stickerToUpdate) => {
-    const sticker = stickers.find((s) => s.id === stickerToUpdate.id)
-
-    if (sticker) {
-        sticker.text = stickerToUpdate.text
-        sticker.laneId = stickerToUpdate.laneId
+const getStickers = async (laneId) => await Sticker.findAll({
+    where: {
+        laneId: laneId
     }
+})
+
+const getAllStickers = async () => await Sticker.findAll()
+
+const updateSticker = async (stickerToUpdate) => {
+    await Sticker.update({ text: stickerToUpdate.text, laneId: stickerToUpdate.laneId }, {
+        where: {
+            id: stickerToUpdate.id
+        }
+    }).then(() => console.log(`sticker ${stickerToUpdate.id} updated`))
+    .catch(err => console.log(err))
 }
 
 module.exports = { addSticker , deleteSticker, getSticker, getStickers, getAllStickers, updateSticker }

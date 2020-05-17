@@ -4,7 +4,7 @@ const http = require('http')
 const cors = require('cors')
 const router = require('./router')
 
-const { addSticker , deleteSticker, getSticker, getAllStickers, updateSticker } = require('./stickers')
+const { addSticker , deleteSticker, getSticker, getStickers, getAllStickers, updateSticker } = require('./stickers')
 const { getAllLanes } = require('./lanes')
 
 const PORT = process.env.PORT || 5000
@@ -16,71 +16,83 @@ const io = socketio(server)
 app.use(router)
 app.use(cors())
 
-// const db = require('./config/database')
-
 io.on('connection', (socket) => {
-    console.log(`new connection from ${socket.id}`)
-
-    socket.emit('update-all-lanes', getAllLanes())
-
-    socket.on('get-all-stickers', () => {
-        socket.emit('update-all-stickers', getAllStickers())
+    socket.on('get-all-stickers', async () => {
+        const stickers = await getAllStickers()
+        socket.emit('refresh-all-stickers', stickers)
     })
     
-    socket.on('get-all-lanes', callback => {
-        socket.emit('update-all-lanes', getAllLanes())
-        socket.emit('update-all-stickers', getAllStickers())
-        callback()
+    socket.on('get-all-lanes', async () => {
+        const lanes = getAllLanes()
+        socket.emit('refresh-all-lanes', lanes)
+
+        const stickers = await getAllStickers()
+        socket.emit('refresh-all-stickers', stickers)
     })
 
-    socket.on('add-sticker', (laneId) => {
-        addSticker(laneId)
-        socket.broadcast.emit('update-all-stickers', getAllStickers())
-        socket.emit('update-all-stickers', getAllStickers())
+    socket.on('add-sticker', async (laneId) => {
+        await addSticker(laneId)
+
+        const stickers = await getStickers(laneId)
+        socket.broadcast.emit('refresh-stickers', stickers, laneId)
+        socket.emit('refresh-stickers', stickers, laneId)
     })
 
-    socket.on('update-sticker', (id, text) => {
-        updateSticker(id, text)
-        socket.broadcast.emit('update-all-stickers', getAllStickers())
+    socket.on('update-sticker', async (sticker) => {
+        await updateSticker(sticker)
+        
+        const stickers = await getStickers(sticker.laneId)
+        socket.broadcast.emit('refresh-stickers', stickers, sticker.laneId)
     })
 
-    socket.on('delete-sticker', (id) => {
-        const deletedSticker = deleteSticker(id)
+    socket.on('delete-sticker', async (sticker) => {
+        await deleteSticker(sticker.id)
 
-        if (deletedSticker) {
-            socket.broadcast.emit('update-all-stickers', getAllStickers())
-            socket.emit('update-all-stickers', getAllStickers())
+        const stickers = await getStickers(sticker.laneId)
+
+        socket.broadcast.emit('refresh-stickers', stickers, sticker.laneId)
+        socket.emit('refresh-stickers', stickers, sticker.laneId)
+    })
+
+    socket.on('move-sticker-right', async (stickerToMove) => {
+        const sticker = await getSticker(stickerToMove.id)
+
+        if (sticker) {
+            sticker.laneId += 1
+
+            await updateSticker(sticker)
+
+            let stickers = await getStickers(sticker.laneId)
+            socket.broadcast.emit('refresh-stickers', stickers, sticker.laneId)
+            socket.emit('refresh-stickers', stickers, sticker.laneId)
+
+            stickers = await getStickers(sticker.laneId - 1)
+            socket.broadcast.emit('refresh-stickers', stickers, sticker.laneId - 1)
+            socket.emit('refresh-stickers', stickers, sticker.laneId - 1)
         }
     })
 
-    socket.on('move-sticker-right', (stickerToMove) => {
-        const sticker = getSticker(stickerToMove.id)
+    socket.on('move-sticker-left', async (stickerToMove) => {
+        const sticker = await getSticker(stickerToMove.id)
 
         if (sticker) {
-            sticker.laneId = parseInt(stickerToMove.laneId) + 1
+            sticker.laneId -= 1
 
-            updateSticker(sticker)
+            await updateSticker(sticker)
 
-            socket.broadcast.emit('update-all-stickers', getAllStickers())
-            socket.emit('update-all-stickers', getAllStickers())
-        }
-    })
+            let stickers = await getStickers(sticker.laneId)
+            socket.broadcast.emit('refresh-stickers', stickers, sticker.laneId)
+            socket.emit('refresh-stickers', stickers, sticker.laneId)
 
-    socket.on('move-sticker-left', (stickerToMove) => {
-        const sticker = getSticker(stickerToMove.id)
-
-        if (sticker) {
-            sticker.laneId = parseInt(stickerToMove.laneId) - 1
-
-            updateSticker(sticker)
-
-            socket.broadcast.emit('update-all-stickers', getAllStickers())
-            socket.emit('update-all-stickers', getAllStickers())
+            stickers = await getStickers(sticker.laneId + 1)
+            socket.broadcast.emit('refresh-stickers', stickers, sticker.laneId + 1)
+            socket.emit('refresh-stickers', stickers, sticker.laneId + 1)
         }
     })
 
     socket.on('join', () => {
-        socket.emit('update-all-lanes', getAllLanes())
+        console.log(`new connection from ${socket.id}`)
+        socket.emit('refresh-all-lanes', getAllLanes())
     })
 
     socket.on('disconnect', () => {
@@ -88,4 +100,4 @@ io.on('connection', (socket) => {
     })
 })
 
-server.listen(PORT, () => console.log(`Listening on port ${PORT}`))
+server.listen(PORT, () => console.log(`Server has started on port ${PORT}`))
