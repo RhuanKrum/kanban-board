@@ -1,4 +1,4 @@
-# Kanbam Board
+# Kanbam Board Client
 
 Simple kanbam board application using NodeJS and React, and using mainly socket.io for real-time communication between client and server.
 

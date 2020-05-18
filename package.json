@@ -1,11 +1,9 @@
 {
   "name": "kanban-board-server",
   "version": "1.0.0",
-  "description": "",
+  "description": "KanbanBoardServer",
   "main": "index.js",
   "dependencies": {
-    "bcrypt": "^4.0.1",
-    "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "eslint": "^6.8.0",
     "eslint-plugin-node": "^11.1.0",
@@ -18,17 +16,21 @@
   },
   "devDependencies": {},
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon src/index.js"
+    "start": "node server/index.js",
+    "dev": "nodemon server/index.js"
   },
+  "cacheDirectories": [
+    "node_modules",
+    "client/node_modules"
+  ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/RhuanKrum/kanban-board-server.git"
+    "url": "git+https://github.com/RhuanKrum/kanban-board.git"
   },
   "author": "Rhuan Krum",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/RhuanKrum/kanban-board-server/issues"
+    "url": "https://github.com/RhuanKrum/kanban-board/issues"
   },
-  "homepage": "https://github.com/RhuanKrum/kanban-board-server#readme"
+  "homepage": "https://github.com/RhuanKrum/kanban-board#readme"
 }
