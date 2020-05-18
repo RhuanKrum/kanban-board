@@ -2,7 +2,7 @@
 
 Simple kanbam board application using NodeJS and React, and using mainly socket.io for real-time communication between client and server.
 
-Image Here!
+![Kanbam Board](https://github.com/RhuanKrum/kanban-board/blob/master/client/public/kanbam-board-sample-01.png)
 
 ## Client
 
